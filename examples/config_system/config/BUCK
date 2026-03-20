@@ -1,0 +1,20 @@
+# //config/BUCK
+#
+# This file has ONE job: call config_schema() to create the constraint targets
+# that back every cfg-enabled schema field.
+#
+# The constraint targets are named:
+#   schema__<field_name>          — constraint setting
+#   schema__<field_name>[<val>]   — constraint value subtargets
+#
+# These labels are referenced by:
+#   • config_instance() deps  (to build ConfigurationInfo / PlatformInfo)
+#   • _config_codegen_rule    (select() defaults in generated rule attrs)
+#   • schema_rustc_flags_select()   (select() in rustc_flags)
+
+load(":defs.bzl", "config_schema")
+
+config_schema(
+    name = "schema",
+    visibility = ["PUBLIC"],
+)
