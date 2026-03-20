@@ -1,0 +1,71 @@
+# //configs/BUCK
+#
+# Named configuration instances.
+#
+# Each config_instance() call is the SINGLE place of declaration for that
+# named configuration.  It produces a target that:
+#
+#   1. Can be passed as --target-platforms //configs:<name>
+#   2. Can be selected as a modifier alias (-m <alias>) via PACKAGE
+#   3. Carries all typed field values in ConfigInstanceInfo for code-gen
+#
+# Inheritance is done at the Starlark level: define a plain dict for shared
+# values and pass it as `parent`.  The macro merges parent → values →
+# schema defaults at parse time, so constraint deps are always complete.
+
+load("//config:defs.bzl", "config_instance")
+
+# ---------------------------------------------------------------------------
+# Shared base values (a plain Starlark dict, not a target).
+# Pass this as `parent` in derived configs to inherit all fields.
+# ---------------------------------------------------------------------------
+
+_BASE = {
+    "arch": "x86_64",
+    "build_mode": "debug",
+    "heap_size": 65536,
+    "has_qemu": False,
+    "has_uart": True,
+}
+
+# ---------------------------------------------------------------------------
+# base — x86_64 development build (good for unit-testing on the host)
+# ---------------------------------------------------------------------------
+
+config_instance(
+    name = "base",
+    values = _BASE,
+    visibility = ["PUBLIC"],
+)
+
+# ---------------------------------------------------------------------------
+# riscv64-qemu — RISC-V 64-bit target running in QEMU
+#
+# Inherits everything from _BASE and overrides the relevant fields.
+# ---------------------------------------------------------------------------
+
+config_instance(
+    name = "riscv64-qemu",
+    parent = _BASE,
+    values = {
+        "arch": "riscv64",
+        "heap_size": 131072,
+        "has_qemu": True,
+    },
+    visibility = ["PUBLIC"],
+)
+
+# ---------------------------------------------------------------------------
+# aarch64-release — AArch64 optimised release build (e.g. real hardware)
+# ---------------------------------------------------------------------------
+
+config_instance(
+    name = "aarch64-release",
+    parent = _BASE,
+    values = {
+        "arch": "aarch64",
+        "build_mode": "release",
+        "heap_size": 262144,
+    },
+    visibility = ["PUBLIC"],
+)

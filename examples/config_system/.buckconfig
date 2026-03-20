@@ -1,0 +1,21 @@
+[cells]
+root = .
+prelude = prelude
+toolchains = toolchains
+none = none
+
+[cell_aliases]
+config = prelude
+ovr_config = prelude
+fbcode = none
+fbsource = none
+buck = none
+
+[external_cells]
+prelude = bundled
+
+[parser]
+# Use the prelude's host-matching execution platform as both the default
+# target platform and the execution platform.  Users override the target
+# platform per-build via --target-platforms //configs:<name> or -m <alias>.
+target_platform_detector_spec = target:root//...->prelude//platforms:default

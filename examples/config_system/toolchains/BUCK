@@ -1,0 +1,23 @@
+# //toolchains/BUCK
+#
+# Rust toolchain configured with --cfg flags derived from the active
+# configuration platform.
+#
+# schema_rustc_flags_select() returns a list of select() expressions, one per
+# cfg-enabled schema field.  Because rustc_flags is a regular (non-exec)
+# attribute resolved against the TARGET configuration, the flags correctly
+# reflect which --target-platforms was passed on the command line.
+#
+# Other toolchains (C++, Python, …) are provided by system_demo_toolchains()
+# and are not needed for this Rust-only example.  See the with_prelude example
+# for a full multi-language setup.
+
+load("@prelude//toolchains:rust.bzl", "system_rust_toolchain")
+load("@root//config:defs.bzl", "schema_rustc_flags_select")
+
+system_rust_toolchain(
+    name = "rust",
+    default_edition = "2021",
+    rustc_flags = schema_rustc_flags_select(),
+    visibility = ["PUBLIC"],
+)

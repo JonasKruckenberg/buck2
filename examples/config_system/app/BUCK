@@ -1,0 +1,61 @@
+# //app/BUCK
+#
+# Example Rust binary that consumes the configuration system.
+#
+# Two mechanisms are demonstrated:
+#
+#   1. Constants library  — generated config.rs compiled as a rust_library.
+#      Use `extern crate app_config;` (or just `use app_config::ARCH;`) in Rust
+#      to access strongly-typed constants.
+#
+#   2. --cfg flags  — injected into rustc via the toolchain (toolchains/BUCK).
+#      Enables #[cfg(arch = "riscv64")] and #[cfg(has_qemu)] in any crate
+#      compiled in this configuration, without needing the constants library.
+#
+# Build commands:
+#
+#   # Default platform (x86_64 debug):
+#   buck2 build //app:hello
+#
+#   # RISC-V / QEMU:
+#   buck2 build //app:hello --target-platforms //configs:riscv64-qemu
+#
+#   # Modifier alias (registered in PACKAGE):
+#   buck2 build //app:hello -m riscv64_qemu
+#
+#   # AArch64 release:
+#   buck2 build //app:hello --target-platforms //configs:aarch64-release
+
+load("//config:defs.bzl", "config_codegen")
+
+# Step 1: generate config.rs from the active platform's constraints.
+#
+# The attrs of this rule use select() so the resolved values automatically
+# match whichever --target-platforms is in effect.  No explicit config label
+# is needed here.
+config_codegen(
+    name = "app_config_gen",
+)
+
+# Step 2: compile config.rs as a standalone rust_library.
+#
+# crate_root points at the generated artifact from the rule above.
+# Other Rust targets depend on this library to get the typed constants.
+rust_library(
+    name = "app_config",
+    srcs = [":app_config_gen"],
+    crate_root = ":app_config_gen",
+    edition = "2021",
+    visibility = ["PUBLIC"],
+)
+
+# Step 3: the application binary.
+#
+# It depends on :app_config for the constants and inherits --cfg flags from
+# the toolchain (see toolchains/BUCK → schema_rustc_flags_select()).
+rust_binary(
+    name = "hello",
+    srcs = ["src/main.rs"],
+    edition = "2021",
+    deps = [":app_config"],
+)
