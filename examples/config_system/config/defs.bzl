@@ -11,6 +11,11 @@
 #       Validates types, merges parent values, and creates a target that
 #       provides PlatformInfo + ConfigInstanceInfo.
 #
+#   config_codegen(name, visibility)
+#       Creates a rule target whose output is a generated config.rs file.
+#       Attrs use select() so the generated constants match whichever
+#       --target-platforms is active at build time.
+#
 #   schema_rustc_flags_select()
 #       Returns a list of select() expressions suitable for the rustc_flags
 #       attribute of rust_library / rust_binary / system_rust_toolchain.
@@ -209,6 +214,35 @@ def config_instance(name, values, parent = None, visibility = ["PUBLIC"]):
         int_values = int_v,
         list_values = list_v,
         constraint_value_deps = constraint_deps,
+        visibility = visibility,
+    )
+
+# ---------------------------------------------------------------------------
+# config_codegen()
+# ---------------------------------------------------------------------------
+
+def config_codegen(name, visibility = ["PUBLIC"]):
+    """Create a target that generates config.rs from the active platform.
+
+    The generated file contains pub const declarations for every schema field.
+    Because the rule's attrs use select() defaults, the resolved values
+    automatically match whichever --target-platforms is active at build time.
+
+    Usage in a BUCK file:
+        config_codegen(name = "my_config_gen")
+        rust_library(
+            name = "my_config",
+            srcs = [":my_config_gen"],
+            crate_root = ":my_config_gen",
+            edition = "2021",
+        )
+
+    Then in Rust:
+        extern crate my_config;
+        println!("{}", my_config::ARCH);
+    """
+    config_system_rules.config_codegen(
+        name = name,
         visibility = visibility,
     )
 
