@@ -27,7 +27,11 @@ import subprocess
 import sys
 import tempfile
 from pathlib import Path
-from typing import Any, IO, NamedTuple, Optional
+from typing import IO, Any, NamedTuple, Optional
+
+# Sentinel used to mark OUT_DIR-relative paths emitted by buildscripts.
+# We later replace this sentinel with the actual content-addressed path, once that is known.
+OUT_DIR_SENTINEL: str = "${__BUILDSCRIPT_OUT_DIR__}"
 
 
 # Sentinel used to mark OUT_DIR-relative paths emitted by buildscripts.

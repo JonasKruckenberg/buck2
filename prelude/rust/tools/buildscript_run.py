@@ -16,8 +16,7 @@ import re
 import subprocess
 import sys
 from pathlib import Path
-from typing import Any, IO, NamedTuple, Optional
-
+from typing import IO, Any, NamedTuple, Optional
 
 IS_WINDOWS: bool = os.name == "nt"
 TOOL_CWD: str = os.path.join(os.getcwd(), "")
